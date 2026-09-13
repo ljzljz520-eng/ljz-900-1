@@ -23,3 +23,9 @@ __pycache__/
 *.log
 .env
 .env.*
+
+# 项目运行时
+.runtime/
+runtime/
+public/uploads/
+!.gitkeep
