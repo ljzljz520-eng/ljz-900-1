@@ -29,7 +29,7 @@ $t = $ticket;
     <h4>📷 问题照片（请对照整改）</h4>
     <div class="photo-grid">
       <?php foreach ($t->problemPhotos as $p): ?>
-      <div class="photo-item"><a href="<?= $p->url ?>" target="_blank"><img src="<?= $p->thumb_url ?>" loading="lazy"></a></div>
+      <div class="photo-item"><a href="<?= htmlspecialchars($p->url) ?>" target="_blank"><img src="<?= htmlspecialchars($p->thumb_url) ?>" loading="lazy"></a></div>
       <?php endforeach; ?>
     </div>
   </div>
@@ -48,7 +48,7 @@ $t = $ticket;
     <div class="photo-grid sortable" id="fixGrid">
       <?php foreach ($t->fixPhotos as $p): ?>
       <div class="photo-item" data-id="<?= $p->id ?>">
-        <a href="<?= $p->url ?>" target="_blank"><img src="<?= $p->thumb_url ?>" loading="lazy"></a>
+        <a href="<?= htmlspecialchars($p->url) ?>" target="_blank"><img src="<?= htmlspecialchars($p->thumb_url) ?>" loading="lazy"></a>
         <?php if ($editable): ?>
         <div class="photo-ops">
           <button class="op move-up" title="上移">↑</button>
@@ -64,7 +64,7 @@ $t = $ticket;
     <?php if ($editable): ?>
     <button class="btn btn-primary btn-block btn-lg" id="submitBtn">提交整改</button>
     <?php elseif ((int)$t->status === Ticket::STATUS_SUBMITTED): ?>
-    <div class="alert alert-info">✔ 已提交整改（<?= $t->submitted_at ?>），请等待复查结果。</div>
+    <div class="alert alert-info">✔ 已提交整改（<?= htmlspecialchars((string) $t->submitted_at) ?>），请等待复查结果。</div>
     <?php elseif ((int)$t->status === Ticket::STATUS_APPROVED): ?>
     <div class="alert alert-ok">🎉 复查已通过，感谢配合！</div>
     <?php endif; ?>

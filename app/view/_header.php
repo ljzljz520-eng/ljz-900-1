@@ -23,7 +23,7 @@ $roleText = ['admin' => '管理员', 'counselor' => '辅导员'];
       <?php else: ?>
       <a href="/summary">整改汇总</a>
       <?php endif; ?>
-      <span class="nav-user"><?= htmlspecialchars($user['name'] ?: $user['username']) ?>（<?= $roleText[$user['role']] ?? $user['role'] ?>）</span>
+      <span class="nav-user"><?= htmlspecialchars($user['name'] ?: $user['username']) ?>（<?= htmlspecialchars($roleText[$user['role']] ?? $user['role']) ?>）</span>
       <a href="/logout">退出</a>
     </div>
   </div>

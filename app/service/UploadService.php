@@ -24,6 +24,12 @@ class UploadService
         $allowExt = (array) config('dorm.upload_allow_ext');
         $maxSize  = (int) config('dorm.upload_max_size');
 
+        // 录入人标识校验：非空、限长（photos.uploaded_by VARCHAR(50)）
+        $uploadedBy = trim($uploadedBy);
+        if ($uploadedBy === '' || mb_strlen($uploadedBy) > 50) {
+            throw new \DomainException('录入人标识无效');
+        }
+
         $ext = strtolower($file->getOriginalExtension());
         if (!in_array($ext, $allowExt, true)) {
             throw new \DomainException('仅支持 ' . implode('/', $allowExt) . ' 格式的图片');
@@ -37,6 +43,8 @@ class UploadService
         }
 
         // 存储：public/uploads/YYYYmm/随机名.扩展名
+        // 文件名只允许服务端生成的随机串 + 白名单扩展名；
+        // 禁止把业务编号（ticket_key）、原始文件名等用户输入拼进文件名，防路径穿越与信息泄露
         $sub = date('Ym');
         $dir = public_path() . 'uploads' . DIRECTORY_SEPARATOR . $sub;
         if (!is_dir($dir) && !mkdir($dir, 0755, true)) {

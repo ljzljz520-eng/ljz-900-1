@@ -39,7 +39,7 @@ use app\model\Ticket;
       <td><?= $t->problem_photos_count ?> 张</td>
       <td><?= $t->fix_photos_count ?> 张</td>
       <td><span class="badge <?= Ticket::statusClass($t->status) ?>"><?= Ticket::statusText($t->status) ?></span></td>
-      <td class="muted small"><?= $t->created_at ?></td>
+      <td class="muted small"><?= htmlspecialchars((string) $t->created_at) ?></td>
       <td><a class="btn btn-sm" href="/admin/ticket/<?= $t->id ?>">详情/二维码</a></td>
     </tr>
   <?php endforeach; ?>

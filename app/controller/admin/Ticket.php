@@ -8,6 +8,7 @@ use app\model\Photo;
 use app\model\Room;
 use app\model\Ticket as TicketModel;
 use app\model\TicketDeduction;
+use app\model\User;
 use app\service\UploadService;
 use think\facade\Db;
 
@@ -16,6 +17,16 @@ use think\facade\Db;
  */
 class Ticket extends BaseController
 {
+    /** 单次创建最多扣分项 / 问题照片数 */
+    const MAX_DEDUCTIONS = 50;
+    const MAX_PROBLEM_PHOTOS = 20;
+
+    protected function initialize()
+    {
+        // 录入人角色二次校验（不依赖路由中间件配置）
+        $this->requireRole(User::ROLE_ADMIN);
+    }
+
     /** 整改单列表 */
     public function index()
     {
@@ -79,6 +90,9 @@ class Ticket extends BaseController
         if (!$deductions) {
             return $this->fail('请至少填写一个扣分项');
         }
+        if (count($deductions) > self::MAX_DEDUCTIONS) {
+            return $this->fail('扣分项数量不能超过 ' . self::MAX_DEDUCTIONS . ' 个');
+        }
 
         $files = $this->request->file('photos') ?: [];
         if (!is_array($files)) {
@@ -86,6 +100,9 @@ class Ticket extends BaseController
         }
         if (!$files) {
             return $this->fail('请至少上传一张问题照片');
+        }
+        if (count($files) > self::MAX_PROBLEM_PHOTOS) {
+            return $this->fail('问题照片一次最多上传 ' . self::MAX_PROBLEM_PHOTOS . ' 张');
         }
 
         Db::startTrans();
@@ -164,11 +181,12 @@ class Ticket extends BaseController
         if (!in_array($action, ['approve', 'reject'], true)) {
             return $this->fail('无效的操作');
         }
-        if ((int) $ticket->status !== TicketModel::STATUS_SUBMITTED) {
+        $target = $action === 'approve' ? TicketModel::STATUS_APPROVED : TicketModel::STATUS_REJECTED;
+        if (!$ticket->canTransitionTo($target)) {
             return $this->fail('当前状态不能复查（需学生先提交整改）');
         }
 
-        $ticket->status      = $action === 'approve' ? TicketModel::STATUS_APPROVED : TicketModel::STATUS_REJECTED;
+        $ticket->status      = $target;
         $ticket->review_note = $note;
         $ticket->reviewed_at = date('Y-m-d H:i:s');
         $ticket->save();
@@ -176,12 +194,15 @@ class Ticket extends BaseController
         return $this->ok([], $action === 'approve' ? '已复查通过' : '已驳回，等待学生重新整改');
     }
 
-    /** 补传问题照片 */
+    /** 补传问题照片（仅待整改/被驳回期间，提交后证据冻结） */
     public function uploadPhoto($id)
     {
         $ticket = TicketModel::find((int) $id);
         if (!$ticket) {
             return $this->fail('整改单不存在');
+        }
+        if (!$ticket->isPhotoMutable()) {
+            return $this->fail('学生已提交，问题照片已冻结，不能再补传');
         }
         $file = $this->request->file('photo');
         if (!$file) {
@@ -199,12 +220,16 @@ class Ticket extends BaseController
         ], '上传成功');
     }
 
-    /** 删除照片（问题照/整改照均可，管理员权限） */
+    /** 删除照片（问题照/整改照均可，管理员权限；提交后冻结） */
     public function deletePhoto($id)
     {
         $photo = Photo::find((int) $id);
         if (!$photo) {
             return $this->fail('照片不存在');
+        }
+        $ticket = TicketModel::find($photo->ticket_id);
+        if (!$ticket || !$ticket->isPhotoMutable()) {
+            return $this->fail('整改单已提交，照片已冻结，不能删除');
         }
         UploadService::deletePhoto($photo);
         return $this->ok([], '照片已删除');
@@ -221,6 +246,9 @@ class Ticket extends BaseController
         $ids  = (array) $this->request->post('ids/a', []);
         if (!in_array($kind, [Photo::KIND_PROBLEM, Photo::KIND_FIX], true) || !$ids) {
             return $this->fail('参数错误');
+        }
+        if (!$ticket->isPhotoMutable()) {
+            return $this->fail('整改单已提交，照片已冻结，不能调整顺序');
         }
         $sort = 1;
         foreach ($ids as $pid) {

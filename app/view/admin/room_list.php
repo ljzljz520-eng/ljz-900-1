@@ -18,7 +18,7 @@
       <td><?= htmlspecialchars($r->building) ?></td>
       <td><?= htmlspecialchars($r->room_no) ?></td>
       <td><?= $r->tickets_count ?></td>
-      <td class="muted small"><?= $r->created_at ?></td>
+      <td class="muted small"><?= htmlspecialchars((string) $r->created_at) ?></td>
       <td><button class="btn btn-sm btn-danger room-del" data-id="<?= $r->id ?>">删除</button></td>
     </tr>
   <?php endforeach; ?>

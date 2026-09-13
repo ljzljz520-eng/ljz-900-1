@@ -42,6 +42,17 @@ abstract class BaseController
     }
 
     /**
+     * 校验当前登录用户角色（控制器层二次校验，不依赖路由中间件配置）
+     * @throws \think\exception\HttpException
+     */
+    protected function requireRole(string ...$roles): void
+    {
+        if (!$this->user || !in_array($this->user['role'] ?? '', $roles, true)) {
+            throw new \think\exception\HttpException(403, '没有权限执行此操作');
+        }
+    }
+
+    /**
      * 渲染视图并返回 HTML 响应
      */
     protected function view(string $template, array $vars = [])

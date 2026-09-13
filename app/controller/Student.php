@@ -109,7 +109,7 @@ class Student extends BaseController
     /** 提交整改 */
     public function submit($token)
     {
-        if (!$this->ticket->isEditable()) {
+        if (!$this->ticket->canTransitionTo(Ticket::STATUS_SUBMITTED)) {
             return $this->fail('当前状态不能提交');
         }
         if ($this->ticket->fixPhotos()->count() === 0) {

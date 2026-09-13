@@ -52,15 +52,15 @@ use app\model\Ticket;
           <td class="pair-no"><?= $i + 1 ?></td>
           <td class="pair-cell">
             <?php if ($pair['problem']): ?>
-            <a href="<?= $pair['problem']->url ?>" target="_blank">
-              <img src="<?= $pair['problem']->thumb_url ?>" loading="lazy" alt="问题照片<?= $i+1 ?>">
+            <a href="<?= htmlspecialchars($pair['problem']->url) ?>" target="_blank">
+              <img src="<?= htmlspecialchars($pair['problem']->thumb_url) ?>" loading="lazy" alt="问题照片<?= $i+1 ?>">
             </a>
             <?php else: ?><span class="muted">—</span><?php endif; ?>
           </td>
           <td class="pair-cell">
             <?php if ($pair['fix']): ?>
-            <a href="<?= $pair['fix']->url ?>" target="_blank">
-              <img src="<?= $pair['fix']->thumb_url ?>" loading="lazy" alt="整改照片<?= $i+1 ?>">
+            <a href="<?= htmlspecialchars($pair['fix']->url) ?>" target="_blank">
+              <img src="<?= htmlspecialchars($pair['fix']->thumb_url) ?>" loading="lazy" alt="整改照片<?= $i+1 ?>">
             </a>
             <?php else: ?><span class="muted">待上传</span><?php endif; ?>
           </td>
@@ -71,8 +71,8 @@ use app\model\Ticket;
   </div>
   <?php endif; ?>
   <div class="muted small ticket-foot">
-    创建 <?= $t->created_at ?>
-    <?php if ($t->submitted_at): ?> · 提交 <?= $t->submitted_at ?><?php endif; ?>
+    创建 <?= htmlspecialchars((string) $t->created_at) ?>
+    <?php if ($t->submitted_at): ?> · 提交 <?= htmlspecialchars((string) $t->submitted_at) ?><?php endif; ?>
     <?php if ($t->review_note): ?> · 复查意见：<?= htmlspecialchars($t->review_note) ?><?php endif; ?>
   </div>
 </div>

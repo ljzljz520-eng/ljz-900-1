@@ -19,6 +19,17 @@ class Ticket extends Model
     const STATUS_APPROVED  = 2;
     const STATUS_REJECTED  = 3;
 
+    /**
+     * 状态机：允许的状态流转（关键环节不可跳过）
+     * 待整改 → 已提交；已提交 → 通过/驳回；驳回 → 已提交；通过 → 终态
+     */
+    const TRANSITIONS = [
+        self::STATUS_PENDING   => [self::STATUS_SUBMITTED],
+        self::STATUS_SUBMITTED => [self::STATUS_APPROVED, self::STATUS_REJECTED],
+        self::STATUS_REJECTED  => [self::STATUS_SUBMITTED],
+        self::STATUS_APPROVED  => [],
+    ];
+
     public static function statusText(int $status): string
     {
         return match ($status) {
@@ -96,6 +107,23 @@ class Ticket extends Model
     public function isEditable(): bool
     {
         return in_array((int) $this->status, [self::STATUS_PENDING, self::STATUS_REJECTED], true);
+    }
+
+    /**
+     * 校验是否允许流转到目标状态（所有状态变更必须先过此校验）
+     */
+    public function canTransitionTo(int $to): bool
+    {
+        return in_array($to, self::TRANSITIONS[(int) $this->status] ?? [], true);
+    }
+
+    /**
+     * 流程产物（问题照/整改照）是否允许变更
+     * 学生提交后（已提交/已归档）照片即冻结，防止跳过提交、复查环节篡改证据
+     */
+    public function isPhotoMutable(): bool
+    {
+        return $this->isEditable();
     }
 
     /**

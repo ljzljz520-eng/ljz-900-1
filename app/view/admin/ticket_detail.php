@@ -24,9 +24,9 @@ $t = $ticket;
         <div class="muted small">合计扣 <?= (float)$t->deductions()->sum('points') ?> 分</div>
       </td></tr>
       <?php if ($t->remark): ?><tr><th>备注</th><td><?= htmlspecialchars($t->remark) ?></td></tr><?php endif; ?>
-      <tr><th>创建时间</th><td class="muted"><?= $t->created_at ?></td></tr>
-      <?php if ($t->submitted_at): ?><tr><th>学生提交</th><td class="muted"><?= $t->submitted_at ?></td></tr><?php endif; ?>
-      <?php if ($t->reviewed_at): ?><tr><th>复查时间</th><td class="muted"><?= $t->reviewed_at ?><?= $t->review_note ? '（' . htmlspecialchars($t->review_note) . '）' : '' ?></td></tr><?php endif; ?>
+      <tr><th>创建时间</th><td class="muted"><?= htmlspecialchars((string) $t->created_at) ?></td></tr>
+      <?php if ($t->submitted_at): ?><tr><th>学生提交</th><td class="muted"><?= htmlspecialchars((string) $t->submitted_at) ?></td></tr><?php endif; ?>
+      <?php if ($t->reviewed_at): ?><tr><th>复查时间</th><td class="muted"><?= htmlspecialchars((string) $t->reviewed_at) ?><?= $t->review_note ? '（' . htmlspecialchars($t->review_note) . '）' : '' ?></td></tr><?php endif; ?>
     </table>
 
     <?php if ((int)$t->status === Ticket::STATUS_SUBMITTED): ?>
@@ -59,7 +59,7 @@ $t = $ticket;
   <div class="photo-grid sortable" data-kind="problem" id="problemGrid">
     <?php foreach ($t->problemPhotos as $p): ?>
     <div class="photo-item" data-id="<?= $p->id ?>">
-      <a href="<?= $p->url ?>" target="_blank"><img src="<?= $p->thumb_url ?>" loading="lazy"></a>
+      <a href="<?= htmlspecialchars($p->url) ?>" target="_blank"><img src="<?= htmlspecialchars($p->thumb_url) ?>" loading="lazy"></a>
       <div class="photo-ops">
         <button class="op move-up" title="上移">↑</button>
         <button class="op move-down" title="下移">↓</button>
@@ -79,7 +79,7 @@ $t = $ticket;
   <div class="photo-grid sortable" data-kind="fix" id="fixGrid">
     <?php foreach ($t->fixPhotos as $p): ?>
     <div class="photo-item" data-id="<?= $p->id ?>">
-      <a href="<?= $p->url ?>" target="_blank"><img src="<?= $p->thumb_url ?>" loading="lazy"></a>
+      <a href="<?= htmlspecialchars($p->url) ?>" target="_blank"><img src="<?= htmlspecialchars($p->thumb_url) ?>" loading="lazy"></a>
       <div class="photo-ops">
         <button class="op move-up" title="上移">↑</button>
         <button class="op move-down" title="下移">↓</button>
