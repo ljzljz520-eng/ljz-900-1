@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>整改上传 · {$issue.issue_key}</title>
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<main class="container" style="max-width:820px">
+  <div class="card">
+    <div class="student-hero">
+      <h1 style="margin:0;font-size:20px">{$issue.room.building} {$issue.room.room_no} · 卫生整改</h1>
+      <p class="muted" style="margin:6px 0">
+        单号 <span class="key-mono">{$issue.issue_key}</span> ·
+        扣分项：{$issue.item.name}（-{$issue.score}分）
+      </p>
+      {php}$st=$issue->statusText();{/php}
+      <span class="tag {$st[1]}">{$st[0]}</span>
+    </div>
+
+    {if condition="$issue.description neq ''"}
+    <p style="background:#f8fafc;padding:10px 12px;border-radius:8px;margin:0 0 14px">📝 {$issue.description}</p>
+    {/if}
+
+    <h3 style="margin:6px 0 10px">🔴 管理员上传的问题照片（共 {$issue.photos->count()} 张）</h3>
+    <div class="photos" style="margin-bottom:18px">
+      {volist name="issue.photos" id="p"}
+      <div class="photo"><img src="{$p.path}" alt="问题照片"></div>
+      {/volist}
+      {if condition="$issue.photos->isEmpty()"}<div class="empty" style="width:100%">暂无问题照片</div>{/if}
+    </div>
+
+    <h3 style="margin:6px 0 10px">🟢 我的整改照片</h3>
+    <div class="photos" id="fixPhotos" style="margin-bottom:16px">
+      {if condition="$issue->rectification && !$issue->rectification->photos->isEmpty()"}
+        {volist name="issue.rectification.photos" id="rp"}
+        <div class="photo"><img src="{$rp.path}" alt="整改照片"></div>
+        {/volist}
+      {else /}
+        <div class="empty" id="fixEmpty" style="width:100%">还没有提交整改照片</div>
+      {/if}
+    </div>
+
+    {if condition="$issue.status != 2"}
+    <form id="uploadForm">
+      <div class="field">
+        <label>选择整改照片（可多选，jpg/png/webp，单张≤10MB）</label>
+        <input type="file" name="photos[]" id="photosInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple required>
+      </div>
+      <div class="field">
+        <label>整改说明（选填）</label>
+        <textarea name="note" rows="2" placeholder="说明已如何整改，如：已清扫地面、整理床铺"></textarea>
+      </div>
+      <div id="msg"></div>
+      <button class="btn success" type="submit" id="submitBtn">提交整改照片</button>
+      <span class="muted">提示：重新提交会替换之前的整改照片</span>
+    </form>
+    {else /}
+    <div class="ok-box">✅ 辅导员已审核通过，感谢配合！</div>
+    {/if}
+  </div>
+</main>
+<script>
+(function(){
+  var form = document.getElementById('uploadForm');
+  if (!form) return;
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var input = document.getElementById('photosInput');
+    if (!input.files.length) { alert('请先选择图片'); return; }
+    var fd = new FormData(form);
+    var btn = document.getElementById('submitBtn');
+    var msg = document.getElementById('msg');
+    btn.disabled = true; btn.textContent = '上传中…';
+    msg.innerHTML = '';
+    fetch(window.location.pathname + '/upload', { method: 'POST', body: fd })
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(res){
+        if (res.j.code === 0) {
+          msg.innerHTML = '<div class="ok-box">'+res.j.msg+'，页面即将刷新…</div>';
+          setTimeout(function(){ window.location.reload(); }, 1200);
+        } else {
+          msg.innerHTML = '<div class="error-box">'+res.j.msg+'</div>';
+          btn.disabled = false; btn.textContent = '提交整改照片';
+        }
+      })
+      .catch(function(){
+        msg.innerHTML = '<div class="error-box">网络错误，请重试</div>';
+        btn.disabled = false; btn.textContent = '提交整改照片';
+      });
+  });
+})();
+</script>
+</body>
+</html>

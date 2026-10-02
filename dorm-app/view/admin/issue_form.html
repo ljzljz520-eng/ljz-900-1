@@ -1,0 +1,50 @@
+{extend name="layout/base" /}
+{block name="title"}新建问题单{/block}
+{block name="content"}
+<div class="card" style="max-width:680px">
+  <h2>新建卫生问题单</h2>
+  <form method="post" action="{:url('/admin/issues')}" enctype="multipart/form-data">
+    <div class="field">
+      <label>宿舍房间 *</label>
+      <select name="room_id" required>
+        <option value="">请选择房间</option>
+        {volist name="rooms" id="r"}
+        <option value="{$r.id}">{$r.building} {$r.room_no}{if condition="$r.counselor"}（辅导员：{$r.counselor.real_name}）{/if}</option>
+        {/volist}
+      </select>
+    </div>
+    <div class="row">
+      <div class="field" style="flex:1">
+        <label>扣分项 *</label>
+        <select name="deduction_item_id" id="itemSelect" required>
+          <option value="">请选择扣分项</option>
+          {volist name="items" id="it"}
+          <option value="{$it.id}" data-score="{$it.default_score}">{$it.name}（默认 -{$it.default_score}）</option>
+          {/volist}
+        </select>
+      </div>
+      <div class="field">
+        <label>本次扣分</label>
+        <input type="number" name="score" id="scoreInput" min="0" max="100" value="0">
+      </div>
+    </div>
+    <div class="field">
+      <label>问题描述</label>
+      <textarea name="description" rows="3" placeholder="描述卫生问题，如：床位下方有食品包装袋"></textarea>
+    </div>
+    <div class="field">
+      <label>问题照片（可多选，jpg/png/webp/gif，单张≤10MB）</label>
+      <input type="file" name="photos[]" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+      <span class="muted">也可以先创建，再到详情页继续追加、拖拽排序</span>
+    </div>
+    <button class="btn" type="submit">创建并生成整改二维码</button>
+    <a class="muted" href="{:url('/admin/issues')}">取消</a>
+  </form>
+</div>
+<script>
+document.getElementById('itemSelect').addEventListener('change', function(){
+  var opt = this.options[this.selectedIndex];
+  if (opt && opt.dataset.score) document.getElementById('scoreInput').value = opt.dataset.score;
+});
+</script>
+{/block}

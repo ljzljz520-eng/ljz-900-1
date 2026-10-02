@@ -1,0 +1,56 @@
+{extend name="layout/base" /}
+{block name="title"}扣分项管理{/block}
+{block name="content"}
+<div class="card">
+  <h2>新增扣分项</h2>
+  <form method="post" action="{:url('/admin/items')}" class="row">
+    <div class="field" style="margin:0"><label>名称</label><input type="text" name="name" required placeholder="如 桌面凌乱"></div>
+    <div class="field" style="margin:0"><label>默认扣分</label><input type="number" name="default_score" value="2" min="0" max="100" style="min-width:100px"></div>
+    <button class="btn" type="submit">添加</button>
+  </form>
+</div>
+<div class="card" style="padding:0">
+  <table>
+    <thead><tr><th>ID</th><th>名称</th><th>默认扣分</th><th>状态</th><th>操作</th></tr></thead>
+    <tbody>
+    {volist name="items" id="it"}
+      <tr data-id="{$it.id}">
+        <td>{$it.id}</td>
+        <td><input class="f-name" type="text" value="{$it.name}" style="min-width:200px"></td>
+        <td><input class="f-score" type="number" value="{$it.default_score}" min="0" max="100" style="min-width:90px"></td>
+        <td>
+          <select class="f-active" style="min-width:90px">
+            <option value="1" {if condition="$it.is_active eq 1"}selected{/if}>启用</option>
+            <option value="0" {if condition="$it.is_active neq 1"}selected{/if}>停用</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn sm secondary btn-save">保存</button>
+          <button class="btn sm danger btn-del">删除</button>
+        </td>
+      </tr>
+    {/volist}
+    {if condition="$items->isEmpty()"}<tr><td colspan="5"><div class="empty">暂无扣分项</div></td></tr>{/if}
+    </tbody>
+  </table>
+  <div style="padding:0 16px 14px">{$items|raw}</div>
+</div>
+<script>
+document.querySelectorAll('tr[data-id]').forEach(function(tr){
+  var id = tr.dataset.id;
+  tr.querySelector('.btn-save').addEventListener('click', function(){
+    var fd = new FormData();
+    fd.append('name', tr.querySelector('.f-name').value);
+    fd.append('default_score', tr.querySelector('.f-score').value);
+    fd.append('is_active', tr.querySelector('.f-active').value);
+    fetch('/admin/items/'+id, { method:'PUT', body: fd }).then(function(){ alert('已保存'); location.reload(); });
+  });
+  tr.querySelector('.btn-del').addEventListener('click', function(){
+    if (!confirm('删除该扣分项？历史问题单不受影响。')) return;
+    fetch('/admin/items/'+id, { method:'DELETE' }).then(function(r){return r.json();}).then(function(j){
+      if (j.code===0) location.reload(); else alert(j.msg);
+    });
+  });
+});
+</script>
+{/block}

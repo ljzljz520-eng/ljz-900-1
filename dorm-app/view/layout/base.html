@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{block name="title"}宿舍卫生整改拍照站{/block}</title>
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/qrcode.min.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">🏠 宿舍卫生整改拍照站</div>
+  <nav class="nav">
+    {if condition="session('?user_id')"}
+      {if condition="session('role') eq 'admin'"}
+        <a href="{:url('/admin/issues')}" class="{$nav=='issues'?'active':''}">问题单</a>
+        <a href="{:url('/admin/rooms')}" class="{$nav=='rooms'?'active':''}">房间管理</a>
+        <a href="{:url('/admin/items')}" class="{$nav=='items'?'active':''}">扣分项</a>
+        <a href="{:url('/counselor/issues')}" class="{$nav=='summary'?'active':''}">整改汇总</a>
+      {else /}
+        <a href="{:url('/counselor/issues')}" class="{$nav=='summary'?'active':''}">整改汇总</a>
+      {/if}
+      <span class="who">{$Request.session.real_name}（{if condition="$Request.session.role eq 'admin'"}管理员{else /}辅导员{/if}）</span>
+      <a class="btn-link" href="{:url('/logout')}">退出</a>
+    {/if}
+  </nav>
+</header>
+<main class="container">
+{block name="content"}{/block}
+</main>
+<footer class="footer">ThinkPHP 8 + MySQL · 仅限校园内部使用</footer>
+</body>
+</html>

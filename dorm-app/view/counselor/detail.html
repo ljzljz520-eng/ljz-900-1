@@ -1,0 +1,81 @@
+{extend name="layout/base" /}
+{block name="title"}{$issue.issue_key} 对照{/block}
+{block name="content"}
+{php}$st=$issue->statusText();{/php}
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <div>
+      <h2 style="margin:0 0 6px"><span class="key-mono">{$issue.issue_key}</span>
+        <span class="tag {$st[1]}">{$st[0]}</span>
+      </h2>
+      <p style="margin:2px 0">🏠 <b>{$issue.room.building} {$issue.room.room_no}</b> · {$issue.item.name}（<b style="color:#dc2626">-{$issue.score}</b>）</p>
+      {if condition="$issue.description neq ''"}<p style="margin:6px 0 0;background:#f8fafc;padding:8px 12px;border-radius:6px">📝 {$issue.description}</p>{/if}
+    </div>
+    <a class="btn secondary sm" href="{:url('/counselor/issues')}">返回汇总</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="pair">
+    <div class="col">
+      <h3>🔴 管理员问题照片（{$issue.photos->count()}）</h3>
+      <div class="photos">
+        {volist name="issue.photos" id="p"}
+        <div class="photo"><span class="badge-type badge-issue">问题</span><img src="{$p.path}"></div>
+        {/volist}
+        {if condition="$issue.photos->isEmpty()"}<div class="empty" style="width:100%">无</div>{/if}
+      </div>
+    </div>
+    <div class="col">
+      <h3>🟢 学生整改照片{if condition="$issue->rectification"}（{$issue.rectification.photos->count()}）{/if}</h3>
+      {if condition="$issue->rectification && !$issue.rectification.photos->isEmpty()"}
+        {if condition="$issue.rectification.note neq ''"}<p class="muted" style="margin:0 0 8px">学生说明：{$issue.rectification.note}</p>{/if}
+        <div class="photos">
+        {volist name="issue.rectification.photos" id="rp"}
+        <div class="photo"><span class="badge-type badge-fix">整改</span><img src="{$rp.path}"></div>
+        {/volist}
+        </div>
+        <p class="muted" style="margin-top:10px">提交时间：{$issue.rectified_at}</p>
+      {else /}
+        <div class="empty" style="width:100%">学生尚未提交整改照片</div>
+      {/if}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>审核操作</h2>
+  <div id="reviewMsg"></div>
+  <div class="row">
+    {if condition="in_array($issue.status, [1,3]) && $issue->rectification && !$issue.rectification->photos->isEmpty()"}
+    <button class="btn success" onclick="review('approve')">✅ 审核通过</button>
+    {/if}
+    {if condition="$issue.status eq 1"}
+    <button class="btn danger" onclick="review('reject')">↩️ 驳回，要求重新整改</button>
+    {/if}
+    {if condition="$issue.status eq 2"}
+    <span class="tag tag-success">已于 {$issue.close_time} 通过审核</span>
+    {/if}
+    {if condition="$issue.status eq 0"}
+    <span class="muted">学生尚未提交整改，暂不能审核</span>
+    {/if}
+    {if condition="$issue.status eq 3"}
+    <span class="tag tag-info">已驳回，等待学生重新上传</span>
+    {/if}
+  </div>
+</div>
+
+<script>
+function review(action){
+  var ok = action === 'approve' ? confirm('确认整改合格、审核通过？') : confirm('确认驳回？学生需重新上传整改照片。');
+  if (!ok) return;
+  fetch('/counselor/issues/{$issue.id}/' + action, { method:'POST' })
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var box = document.getElementById('reviewMsg');
+      if (j.code === 0) { box.innerHTML = '<div class="ok-box">'+j.msg+'，即将刷新…</div>'; setTimeout(function(){location.reload();}, 900); }
+      else { box.innerHTML = '<div class="error-box">'+j.msg+'</div>'; }
+    });
+}
+</script>
+{/block}

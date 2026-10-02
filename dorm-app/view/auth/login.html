@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登录 · 宿舍卫生整改拍照站</title>
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="card">
+    <h1>🏠 宿舍卫生整改拍照站</h1>
+    <div class="sub">管理员 / 辅导员登录</div>
+    {if condition="$error neq ''"}<div class="error-box">{$error}</div>{/if}
+    <form method="post" action="{:url('/login')}">
+      <div class="field">
+        <label>账号</label>
+        <input type="text" name="username" required autofocus placeholder="如 admin / laowang">
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input type="password" name="password" required placeholder="请输入密码">
+      </div>
+      <button class="btn" type="submit" style="width:100%">登 录</button>
+    </form>
+    <p class="muted" style="margin-top:14px">演示账号：admin / admin123 ；laowang / teacher123</p>
+  </div>
+</div>
+</body>
+</html>

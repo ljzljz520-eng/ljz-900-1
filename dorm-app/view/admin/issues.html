@@ -1,0 +1,48 @@
+{extend name="layout/base" /}
+{block name="content"}
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2 style="margin:0">卫生问题单</h2>
+    <a class="btn" href="{:url('/admin/issues/create')}">+ 新建问题单</a>
+  </div>
+  <form method="get" class="row" style="margin-top:14px">
+    <select name="status">
+      <option value="">全部状态</option>
+      {foreach $statusMap as $k=>$s}
+      <option value="{$k}" {if condition="$status !== '' && $status eq $k"}selected{/if}>{$s[0]}</option>
+      {/foreach}
+    </select>
+    <input type="text" name="keyword" value="{$keyword}" placeholder="搜索单号 key，如 XG…">
+    <button class="btn secondary sm" type="submit">筛选</button>
+    <a class="muted" href="{:url('/admin/issues')}">重置</a>
+  </form>
+</div>
+
+<div class="card" style="padding:0">
+  <table>
+    <thead>
+      <tr><th>Key</th><th>房间</th><th>扣分项</th><th>扣分</th><th>问题图</th><th>整改图</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+    </thead>
+    <tbody>
+    {volist name="issues" id="it"}
+      {php}$st=$it->statusText();{/php}
+      <tr>
+        <td class="key-mono">{$it.issue_key}</td>
+        <td>{$it.room.building} {$it.room.room_no}</td>
+        <td>{$it.item.name}</td>
+        <td>-{$it.score}</td>
+        <td>{$it.photos->count()}</td>
+        <td>{if condition="$it->rectification"}{$it->rectification->photos->count()}{else /}0{/if}</td>
+        <td><span class="tag {$st[1]}">{$st[0]}</span></td>
+        <td class="muted">{$it.create_time}</td>
+        <td><a class="btn sm" href="/admin/issues/{$it.id}">查看/二维码</a></td>
+      </tr>
+    {/volist}
+    {if condition="$issues->isEmpty()"}
+      <tr><td colspan="9"><div class="empty">暂无问题单，点击右上角新建</div></td></tr>
+    {/if}
+    </tbody>
+  </table>
+  <div style="padding:0 16px 14px">{$issues|raw}</div>
+</div>
+{/block}

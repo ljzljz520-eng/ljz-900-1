@@ -1,0 +1,154 @@
+{extend name="layout/base" /}
+{block name="title"}{$issue.issue_key} 详情{/block}
+{block name="content"}
+{php}$st=$issue->statusText();{/php}
+<div class="card">
+  <div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div>
+      <h2 style="margin:0 0 8px"><span class="key-mono">{$issue.issue_key}</span>
+        <span class="tag {$st[1]}" style="margin-left:6px">{$st[0]}</span>
+      </h2>
+      <p style="margin:4px 0">
+        🏠 <b>{$issue.room.building} {$issue.room.room_no}</b> ·
+        扣分项：{$issue.item.name}（<b style="color:#dc2626">-{$issue.score}</b> 分）
+        {if condition="$issue.counselor"} · 辅导员：{$issue.counselor.real_name}{/if}
+      </p>
+      <p class="muted" style="margin:4px 0">创建人：{$issue.creator.real_name} · 创建时间：{$issue.create_time}{if condition="$issue.rectified_at"} · 最近提交：{$issue.rectified_at}{/if}{if condition="$issue.close_time"} · 通过时间：{$issue.close_time}{/if}</p>
+      {if condition="$issue.description neq ''"}<p style="background:#f8fafc;padding:8px 12px;border-radius:6px;margin:8px 0 0">📝 {$issue.description}</p>{/if}
+    </div>
+    <a class="btn secondary sm" href="{:url('/admin/issues')}">返回列表</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>📱 学生整改二维码（含 token）</h2>
+  <div class="qr-box">
+    <div id="qrcode"></div>
+    <div>
+      <p style="margin:0 0 8px">学生微信/相机扫码即可打开整改上传页，无需登录。</p>
+      <div class="qr-url" id="qrUrl"></div>
+      <p class="muted" style="margin-top:8px">token：{$issue.token}</p>
+      <button class="btn sm secondary" type="button" onclick="copyUrl()">复制整改链接</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2 style="margin:0">🔴 问题照片（{$issue.photos->count()} 张，可拖拽排序）</h2>
+  </div>
+  <div class="photos" id="issuePhotos" data-issue="{$issue.id}">
+    {volist name="issue.photos" id="p"}
+    <div class="photo" draggable="true" data-id="{$p.id}">
+      <span class="badge-type badge-issue">问题</span>
+      <img src="{$p.path}" alt="问题照片">
+      <div class="meta"><span>#{$i}</span><span class="del" data-id="{$p.id}">删除</span></div>
+    </div>
+    {/volist}
+    {if condition="$issue.photos->isEmpty()"}<div class="empty" id="issueEmpty" style="width:100%">还没有问题照片，请上传</div>{/if}
+  </div>
+  <form id="addPhotoForm" style="margin-top:14px">
+    <div class="row">
+      <input type="file" name="photo" id="newPhoto" accept="image/jpeg,image/png,image/webp,image/gif">
+      <button class="btn sm" type="submit">追加照片</button>
+      <span id="photoMsg" class="muted"></span>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>🟢 整改结果对照</h2>
+  <div class="pair">
+    <div class="col">
+      <h3>问题照片（原始）</h3>
+      <div class="photos">
+        {volist name="issue.photos" id="p"}
+        <img class="thumb-mini" src="{$p.path}">
+        {/volist}
+        {if condition="$issue.photos->isEmpty()"}<span class="muted">无</span>{/if}
+      </div>
+    </div>
+    <div class="col">
+      <h3>整改照片（学生上传）{if condition="$issue->rectification"}<span class="muted">· {$issue.rectification.update_time}</span>{/if}</h3>
+      {if condition="$issue->rectification && !$issue.rectification->photos->isEmpty()"}
+        {if condition="$issue.rectification.note neq ''"}<p class="muted" style="margin:0 0 8px">说明：{$issue.rectification.note}</p>{/if}
+        <div class="photos">
+        {volist name="issue.rectification.photos" id="rp"}
+          <img class="thumb-mini" src="{$rp.path}">
+        {/volist}
+        </div>
+      {else /}
+        <div class="empty">学生尚未提交整改照片</div>
+      {/if}
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var url = window.location.origin + '/s/{$issue.token}';
+  document.getElementById('qrUrl').textContent = url;
+  if (window.QRCode) {
+    new QRCode(document.getElementById('qrcode'), { text: url, width: 168, height: 168, correctLevel: QRCode.CorrectLevel.M });
+  } else {
+    document.getElementById('qrcode').innerHTML = '<div class="qr-url">'+url+'</div>';
+  }
+})();
+function copyUrl(){
+  var t = document.getElementById('qrUrl').textContent;
+  navigator.clipboard.writeText(t).then(function(){ alert('链接已复制'); });
+}
+
+// 追加照片
+document.getElementById('addPhotoForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var input = document.getElementById('newPhoto');
+  if (!input.files.length) { alert('请选择图片'); return; }
+  var fd = new FormData(); fd.append('photo', input.files[0]);
+  var msg = document.getElementById('photoMsg');
+  fetch('/admin/issues/{$issue.id}/photos', { method:'POST', body: fd })
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if (j.code === 0) { window.location.reload(); }
+      else { msg.textContent = '上传失败：' + j.msg; }
+    });
+});
+
+// 删除
+document.querySelectorAll('#issuePhotos .del').forEach(function(el){
+  el.addEventListener('click', function(){
+    if (!confirm('确定删除这张照片？')) return;
+    var photoId = this.dataset.id;
+    fetch('/admin/issues/{$issue.id}/photos/' + photoId, { method:'DELETE' })
+      .then(function(r){return r.json();})
+      .then(function(j){ if (j.code===0) window.location.reload(); else alert(j.msg); });
+  });
+});
+
+// 拖拽排序
+(function(){
+  var box = document.getElementById('issuePhotos');
+  var dragEl = null;
+  box.querySelectorAll('.photo').forEach(function(el){
+    el.addEventListener('dragstart', function(){ dragEl = el; el.classList.add('dragging'); });
+    el.addEventListener('dragend', function(){ el.classList.remove('dragging'); saveOrder(); });
+    el.addEventListener('dragover', function(e){ e.preventDefault(); el.classList.add('dragover'); });
+    el.addEventListener('dragleave', function(){ el.classList.remove('dragover'); });
+    el.addEventListener('drop', function(e){
+      e.preventDefault();
+      el.classList.remove('dragover');
+      if (dragEl && dragEl !== el) box.insertBefore(dragEl, el.nextSibling);
+    });
+  });
+  function after(el, ref){ /* insert before ref's next */ }
+  function saveOrder(){
+    var ids = Array.prototype.map.call(box.querySelectorAll('.photo'), function(n){ return n.dataset.id; });
+    var fd = new FormData();
+    ids.forEach(function(id){ fd.append('ids[]', id); });
+    fetch('/admin/issues/{$issue.id}/reorder', { method:'POST', body: fd })
+      .then(function(r){return r.json();})
+      .then(function(j){ if (j.code!==0) alert('排序保存失败'); });
+  }
+})();
+</script>
+{/block}

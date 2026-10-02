@@ -1,0 +1,79 @@
+{extend name="layout/base" /}
+{block name="title"}整改汇总{/block}
+{block name="content"}
+<div class="stats">
+  <div class="stat"><div class="num" style="color:#dc2626">{$stats.pending}</div><div class="lbl">待整改</div></div>
+  <div class="stat"><div class="num" style="color:#b45309">{$stats.submitted}</div><div class="lbl">待复核</div></div>
+  <div class="stat"><div class="num" style="color:#15803d">{$stats.passed}</div><div class="lbl">已通过</div></div>
+  <div class="stat"><div class="num" style="color:#475569">{$stats.rejected}</div><div class="lbl">已驳回</div></div>
+</div>
+
+<div class="card">
+  <form method="get" class="row">
+    <select name="room_id">
+      <option value="0">全部房间</option>
+      {volist name="rooms" id="r"}
+      <option value="{$r.id}" {if condition="$roomId eq $r.id"}selected{/if}>{$r.building} {$r.room_no}</option>
+      {/volist}
+    </select>
+    <select name="status">
+      <option value="">全部状态</option>
+      {foreach $statusMap as $k=>$s}
+      <option value="{$k}" {if condition="$status !== '' && $status eq $k"}selected{/if}>{$s[0]}</option>
+      {/foreach}
+    </select>
+    <input type="text" name="keyword" value="{$keyword}" placeholder="按 key 搜索">
+    <label style="display:flex;align-items:center;gap:5px;font-weight:400;min-width:auto">
+      <input type="checkbox" name="need_review" value="1" {if condition="$needReview"}checked{/if}> 只看待复核
+    </label>
+    <button class="btn secondary sm" type="submit">筛选</button>
+    <a class="muted" href="{:url('/counselor/issues')}">重置</a>
+  </form>
+</div>
+
+{if condition="empty($grouped)"}
+  <div class="card"><div class="empty">没有符合条件的问题单</div></div>
+{/if}
+
+{foreach $grouped as $g}
+<div class="card">
+  <div class="room-head">🏠 {$g.room.building} {$g.room.room_no}
+    <span class="tag tag-blue">{$g.issues|count} 单</span>
+  </div>
+  {volist name="g.issues" id="it"}
+  {php}$st=$it->statusText();{/php}
+  <div class="issue-card">
+    <div class="issue-head">
+      <div>
+        <span class="key-mono">{$it.issue_key}</span>
+        <span class="tag {$st[1]}" style="margin-left:8px">{$st[0]}</span>
+        <span style="margin-left:10px">{$it.item.name} <b style="color:#dc2626">-{$it.score}</b></span>
+        <span class="muted" style="margin-left:8px">{$it.create_time}</span>
+      </div>
+      <a class="btn sm" href="/counselor/issues/{$it.id}">成对查看</a>
+    </div>
+    <div class="issue-body">
+      <div class="pair">
+        <div class="col" style="box-shadow:none;padding:6px">
+          <h3>🔴 问题（{$it.photos->count()}）</h3>
+          <div class="photos">
+            {volist name="it.photos" id="p"}<img class="thumb-mini" src="{$p.path}">{/volist}
+            {if condition="$it.photos->count() eq 0"}<span class="muted">无照片</span>{/if}
+          </div>
+        </div>
+        <div class="col" style="box-shadow:none;padding:6px">
+          <h3>🟢 整改（{if condition="$it->rectification"}{$it->rectification->photos->count()}{else /}0{/if}）</h3>
+          <div class="photos">
+            {if condition="$it->rectification"}
+              {volist name="it.rectification.photos" id="rp"}<img class="thumb-mini" src="{$rp.path}">{/volist}
+            {/if}
+            {if condition="!$it->rectification || $it->rectification->photos->count() eq 0"}<span class="muted">学生尚未提交</span>{/if}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {/volist}
+</div>
+{/foreach}
+{/block}

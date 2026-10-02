@@ -1,0 +1,65 @@
+{extend name="layout/base" /}
+{block name="title"}房间管理{/block}
+{block name="content"}
+<div class="card">
+  <h2>新增房间</h2>
+  <form method="post" action="{:url('/admin/rooms')}" class="row">
+    <div class="field" style="margin:0"><label>楼栋</label><input type="text" name="building" required placeholder="如 3号楼"></div>
+    <div class="field" style="margin:0"><label>房间号</label><input type="text" name="room_no" required placeholder="如 508"></div>
+    <div class="field" style="margin:0"><label>归属辅导员</label>
+      <select name="counselor_id">
+        <option value="">未分配</option>
+        {volist name="counselors" id="c"}<option value="{$c.id}">{$c.real_name}（{$c.username}）</option>{/volist}
+      </select>
+    </div>
+    <button class="btn" type="submit">添加</button>
+  </form>
+</div>
+<div class="card" style="padding:0">
+  <table>
+    <thead><tr><th>ID</th><th>楼栋</th><th>房间号</th><th>辅导员</th><th>待处理问题</th><th>操作</th></tr></thead>
+    <tbody>
+    {volist name="rooms" id="r"}
+      <tr data-id="{$r.id}">
+        <td>{$r.id}</td>
+        <td><span class="f-building">{$r.building}</span></td>
+        <td><span class="f-room">{$r.room_no}</span></td>
+        <td>
+          <select class="f-counselor" style="min-width:120px">
+            <option value="0">未分配</option>
+            {volist name="counselors" id="c"}
+            <option value="{$c.id}" {if condition="$r.counselor_id eq $c.id"}selected{/if}>{$c.real_name}</option>
+            {/volist}
+          </select>
+        </td>
+        <td>{$r.pending_count}</td>
+        <td>
+          <button class="btn sm secondary btn-save">保存</button>
+          <button class="btn sm danger btn-del">删除</button>
+        </td>
+      </tr>
+    {/volist}
+    {if condition="$rooms->isEmpty()"}<tr><td colspan="6"><div class="empty">暂无房间</div></td></tr>{/if}
+    </tbody>
+  </table>
+  <div style="padding:0 16px 14px">{$rooms|raw}</div>
+</div>
+<script>
+document.querySelectorAll('tr[data-id]').forEach(function(tr){
+  var id = tr.dataset.id;
+  tr.querySelector('.btn-save').addEventListener('click', function(){
+    var fd = new FormData();
+    fd.append('building', tr.querySelector('.f-building').textContent);
+    fd.append('room_no', tr.querySelector('.f-room').textContent);
+    fd.append('counselor_id', tr.querySelector('.f-counselor').value);
+    fetch('/admin/rooms/'+id, { method:'PUT', body: fd }).then(function(){ alert('已保存'); location.reload(); });
+  });
+  tr.querySelector('.btn-del').addEventListener('click', function(){
+    if (!confirm('确定删除该房间？')) return;
+    fetch('/admin/rooms/'+id, { method:'DELETE' }).then(function(r){return r.json();}).then(function(j){
+      if (j.code===0) location.reload(); else alert(j.msg);
+    });
+  });
+});
+</script>
+{/block}
