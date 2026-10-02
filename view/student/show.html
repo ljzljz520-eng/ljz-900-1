@@ -1,0 +1,89 @@
+{include file="common/header" title="宿舍整改上传" /}
+<div class="card">
+    <div class="flex-between">
+        <h2 style="border:none;margin:0;padding:0">🧹 卫生整改</h2>
+        <span class="badge {:status_badge($issue.status)}">{:status_text($issue.status)}</span>
+    </div>
+    <div class="issue-meta mt10">
+        <span>房间：<b>{$issue.room.building} {$issue.room.room_no}</b></span>
+        <span>单号：<span class="key-chip">{$issue.issue_key}</span></span>
+    </div>
+    <div class="issue-meta">
+        <span>扣分项：<b style="color:#b91c1c">{$issue.deduct_item}</b></span>
+        <span>扣分：<b>{$issue.deduct_score} 分</b></span>
+    </div>
+    {if $issue.remark}<div class="alert alert-error">整改要求：{$issue.remark}</div>{/if}
+</div>
+
+<div class="card">
+    <h3>📷 检查时发现的问题照片</h3>
+    <div class="photo-grid">
+        {volist name="problemPhotos" id="photo"}
+        <div class="photo-item"><img src="{$photo.file_path}" data-zoom alt="问题照片"></div>
+        {/volist}
+    </div>
+    {empty name="problemPhotos"}<div class="muted">暂无问题照片</div>{/empty}
+</div>
+
+<div class="card">
+    <h3>✅ 我的整改照片（{$rectifyPhotos|count} 张）</h3>
+    {if !empty($error)}<div class="alert alert-error">{$error}</div>{/if}
+    <div class="photo-grid">
+        {volist name="rectifyPhotos" id="photo"}
+        <div class="photo-item">
+            <img src="{$photo.file_path}" data-zoom alt="整改照片">
+            <div class="ops">
+                <span class="ord">#{$photo.sort}</span>
+                {if $issue.status neq 'confirmed'}
+                <button type="button" class="del" onclick="delPhoto({$photo.id})" title="删除">✕ 删除</button>
+                {/if}
+            </div>
+        </div>
+        {/volist}
+    </div>
+    {empty name="rectifyPhotos"}<div class="muted">还没有上传整改照片</div>{/empty}
+
+    {if $issue.status neq 'confirmed'}
+    <form class="mt10" method="post" action="{:url('Student/upload',['token'=>$issue.token])}" enctype="multipart/form-data">
+        <div class="form-row">
+            <label>上传整改后的照片（可多选）</label>
+            <div class="uploader-box">
+                <input type="file" name="photos[]" accept="image/*" multiple required id="photoInput">
+                <div class="form-hint">支持 jpg/png/webp/gif，单张不超过 8MB</div>
+                <div class="preview-grid" id="preview"></div>
+            </div>
+        </div>
+        <div class="form-row">
+            <label>你的姓名 / 称呼（可选）</label>
+            <input type="text" name="uploader" placeholder="如：张三">
+        </div>
+        <button class="btn" type="submit" style="width:100%">提交整改照片</button>
+    </form>
+    {else /}
+    <div class="alert alert-success mt10">该问题单已确认完成，感谢配合 🎉</div>
+    {/if}
+</div>
+
+<script>
+document.getElementById('photoInput') && document.getElementById('photoInput').addEventListener('change', function () {
+    var box = document.getElementById('preview');
+    box.innerHTML = '';
+    Array.prototype.forEach.call(this.files, function (f) {
+        if (!f.type.startsWith('image/')) return;
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        box.appendChild(img);
+    });
+});
+function delPhoto(id) {
+    if (!confirm('确定删除这张整改照片？')) return;
+    fetch('{:url("Student/photoDelete",["token"=>$issue->token])}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + id
+    }).then(function (r) { return r.json(); }).then(function (res) {
+        if (res.code === 0) location.reload(); else alert(res.msg || '删除失败');
+    });
+}
+</script>
+{include file="common/footer" /}

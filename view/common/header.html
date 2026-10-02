@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{$title|default='宿舍卫生整改拍照站'}</title>
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="topbar">
+    <a class="brand" href="/">🛏 宿舍卫生整改拍照站</a>
+    {if $Think.session.admin_user}
+    <nav>
+        <span class="who">{$Think.session.admin_user.name}
+            （{if $Think.session.admin_user.role eq 'admin'}管理员{else /}辅导员{/if}）</span>
+        {if $Think.session.admin_user.role eq 'admin'}
+        <a href="/admin">管理后台</a>
+        {/if}
+        <a href="/counselor">整改汇总</a>
+        <a href="/logout">退出登录</a>
+    </nav>
+    {/if}
+</div>
+<div class="container">
+    {if session('error')}<div class="alert alert-error">{:session('error')}</div>{/if}
+    {if session('success')}<div class="alert alert-success">{:session('success')}</div>{/if}

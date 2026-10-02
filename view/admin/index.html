@@ -1,0 +1,50 @@
+{include file="common/header" title="管理后台" /}
+<div class="card">
+    <div class="flex-between">
+        <h2 style="border:none;margin:0;padding:0">宿舍房间</h2>
+        <div>
+            <a class="btn btn-sm" href="{:url('Admin/roomCreate')}">＋ 添加房间</a>
+            <a class="btn btn-sm btn-green" href="{:url('Admin/issueCreate')}">＋ 新建问题单</a>
+        </div>
+    </div>
+    <form class="toolbar mt10" method="get" action="/admin">
+        <div class="form-row">
+            <label>按楼栋筛选</label>
+            <select name="building" onchange="this.form.submit()">
+                <option value="">全部楼栋</option>
+                {volist name="buildings" id="b"}
+                <option value="{$b}" {if $building eq $b}selected{/if}>{$b}</option>
+                {/volist}
+            </select>
+        </div>
+        <button class="btn btn-sm btn-gray" type="submit">查询</button>
+    </form>
+    <table class="list">
+        <thead>
+        <tr>
+            <th>楼栋</th><th>房号</th><th>待整改</th><th>已提交</th><th>已确认</th><th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {volist name="rooms" id="room"}
+        <tr>
+            <td>{$room.building}</td>
+            <td><b>{$room.room_no}</b></td>
+            <td>{php}$c=$countMap[$room->id]??[];{/php}{$c.pending|default=0}</td>
+            <td>{$c.submitted|default=0}</td>
+            <td>{$c.confirmed|default=0}</td>
+            <td>
+                <a class="btn btn-sm" href="{:url('Admin/issueCreate',['room_id'=>$room->id])}">新建问题单</a>
+                <a class="btn btn-sm btn-line" href="{:url('Admin/roomDetail',['id'=>$room->id])}">问题列表</a>
+                <form class="inline" method="post" action="{:url('Admin/roomDelete')}" onsubmit="return confirm('删除房间将同时删除其全部问题单和照片，确定？')">
+                    <input type="hidden" name="id" value="{$room.id}">
+                    <button class="btn btn-sm btn-red" type="submit">删除</button>
+                </form>
+            </td>
+        </tr>
+        {/volist}
+        {empty name="rooms"}<tr><td colspan="6" class="muted" style="text-align:center">暂无房间，请先添加</td></tr>{/empty}
+        </tbody>
+    </table>
+</div>
+{include file="common/footer" /}

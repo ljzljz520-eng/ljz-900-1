@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 - 宿舍卫生整改拍照站</title>
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="login-wrap">
+    <div class="login-card">
+        <h1>🛏 宿舍卫生整改拍照站</h1>
+        <p class="sub">管理员 / 辅导员登录</p>
+        {if !empty($error)}<div class="alert alert-error">{$error}</div>{/if}
+        {if session('error')}<div class="alert alert-error">{:session('error')}</div>{/if}
+        <form method="post" action="/login">
+            <div class="form-row">
+                <label>用户名</label>
+                <input type="text" name="username" value="{$username|default=''}" required autofocus>
+            </div>
+            <div class="form-row">
+                <label>密码</label>
+                <input type="password" name="password" required>
+            </div>
+            <button class="btn" type="submit" style="width:100%">登 录</button>
+        </form>
+        <p class="muted mt10" style="text-align:center">学生无需登录，扫码二维码即可上传整改图</p>
+    </div>
+</div>
+</body>
+</html>

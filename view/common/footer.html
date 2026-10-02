@@ -1,0 +1,13 @@
+</div>
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lightboxImg" src=""></div>
+<script>
+document.querySelectorAll('img[data-zoom]').forEach(function (img) {
+    img.addEventListener('click', function () {
+        var lb = document.getElementById('lightbox');
+        document.getElementById('lightboxImg').src = img.src;
+        lb.classList.add('show');
+    });
+});
+</script>
+</body>
+</html>

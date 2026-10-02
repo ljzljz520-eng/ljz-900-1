@@ -1,0 +1,74 @@
+{include file="common/header" title="新建问题单" /}
+<div class="card">
+    <h2>新建整改问题单</h2>
+    <form method="post" action="{:url('Admin/issueStore')}" enctype="multipart/form-data" id="issueForm">
+        <div class="form-row">
+            <label>宿舍房间</label>
+            <select name="room_id" required>
+                <option value="">请选择房间</option>
+                {volist name="rooms" id="room"}
+                <option value="{$room.id}" {if $roomId eq $room.id}selected{/if}>{$room.building} {$room.room_no}</option>
+                {/volist}
+            </select>
+            {empty name="rooms"}<div class="form-hint">还没有房间，请先 <a href="{:url('Admin/roomCreate')}">添加房间</a></div>{/empty}
+        </div>
+        <div class="form-row">
+            <label>扣分项（可多选，自动合计扣分）</label>
+            <div class="check-grid">
+                {volist name="items" id="score" key="name"}
+                <label class="check-item">
+                    <input type="checkbox" name="items[]" value="{$name}" data-score="{$score}" class="deduct-check">
+                    {$name} <span class="muted">-{$score}分</span>
+                </label>
+                {/volist}
+            </div>
+        </div>
+        <div class="form-row">
+            <label>自定义扣分项（可选）</label>
+            <input type="text" name="custom_item" placeholder="其他问题描述，如：门口堆放鞋架">
+        </div>
+        <div class="form-row" style="max-width:200px">
+            <label>扣分值</label>
+            <input type="number" name="deduct_score" id="deductScore" value="0" min="0" max="100" required>
+            <div class="form-hint">勾选扣分项后自动合计，可手动调整</div>
+        </div>
+        <div class="form-row">
+            <label>备注（可选）</label>
+            <textarea name="remark" placeholder="补充说明，如：限 24 小时内完成整改"></textarea>
+        </div>
+        <div class="form-row">
+            <label>问题照片（可多选，至少 1 张）</label>
+            <div class="uploader-box">
+                <input type="file" name="photos[]" accept="image/*" multiple required id="photoInput">
+                <div class="form-hint">支持 jpg/png/webp/gif，单张不超过 8MB</div>
+                <div class="preview-grid" id="preview"></div>
+            </div>
+        </div>
+        <button class="btn" type="submit">提交并生成整改二维码</button>
+        <a class="btn btn-gray" href="/admin">返回</a>
+    </form>
+</div>
+<script>
+// 勾选扣分项自动合计扣分
+document.querySelectorAll('.deduct-check').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+        var sum = 0;
+        document.querySelectorAll('.deduct-check:checked').forEach(function (c) {
+            sum += parseInt(c.dataset.score || 0);
+        });
+        document.getElementById('deductScore').value = sum;
+    });
+});
+// 图片选择预览
+document.getElementById('photoInput').addEventListener('change', function () {
+    var box = document.getElementById('preview');
+    box.innerHTML = '';
+    Array.prototype.forEach.call(this.files, function (f) {
+        if (!f.type.startsWith('image/')) return;
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        box.appendChild(img);
+    });
+});
+</script>
+{include file="common/footer" /}

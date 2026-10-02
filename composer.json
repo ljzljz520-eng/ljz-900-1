@@ -1,0 +1,25 @@
+{
+    "name": "dorm/photo-station",
+    "description": "宿舍卫生整改拍照站（ThinkPHP8 + MySQL）",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1.0",
+        "ext-gd": "*",
+        "ext-pdo": "*",
+        "ext-mbstring": "*",
+        "topthink/framework": "^8.0",
+        "topthink/think-orm": "^3.0",
+        "topthink/think-view": "^2.0",
+        "endroid/qr-code": "^5.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app"
+        },
+        "files": ["app/common.php"]
+    },
+    "config": {
+        "preferred-install": "dist"
+    }
+}

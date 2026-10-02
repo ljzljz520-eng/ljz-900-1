@@ -1,0 +1,103 @@
+{include file="common/header" title="整改汇总" /}
+<div class="card">
+    <h2>整改汇总（按房间 / Key 成对查看）</h2>
+    <form class="toolbar" method="get" action="/counselor">
+        <div class="form-row">
+            <label>楼栋</label>
+            <select name="building">
+                <option value="">全部</option>
+                {volist name="buildings" id="b"}
+                <option value="{$b}" {if $building eq $b}selected{/if}>{$b}</option>
+                {/volist}
+            </select>
+        </div>
+        <div class="form-row">
+            <label>状态</label>
+            <select name="status">
+                <option value="">全部</option>
+                <option value="pending" {if $status eq 'pending'}selected{/if}>待整改</option>
+                <option value="submitted" {if $status eq 'submitted'}selected{/if}>已提交整改</option>
+                <option value="confirmed" {if $status eq 'confirmed'}selected{/if}>已确认完成</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>关键字（Key / 房号）</label>
+            <input type="text" name="keyword" value="{$keyword}" placeholder="如 502 或 3-502-20261002-XXXX">
+        </div>
+        <button class="btn btn-sm" type="submit">筛选</button>
+        <a class="btn btn-sm btn-gray" href="/counselor">重置</a>
+    </form>
+</div>
+
+{volist name="groups" id="group"}
+<div class="card">
+    <div class="room-head">
+        <span class="rn">🏠 {$group.room.building} {$group.room.room_no}</span>
+        <span class="muted">共 {$group.issues|count} 条问题单（本页）</span>
+    </div>
+    {volist name="group.issues" id="it"}
+    <div class="issue-block">
+        <div class="issue-meta">
+            <span class="key-chip">{$it.issue.issue_key}</span>
+            <span>扣分项：<b>{$it.issue.deduct_item}</b></span>
+            <span>扣分：<b>{$it.issue.deduct_score}</b></span>
+            <span class="badge {:status_badge($it.issue.status)}">{:status_text($it.issue.status)}</span>
+            <span class="muted">{$it.issue.created_at}</span>
+            {if $Think.session.admin_user.role neq ''}
+            <span>
+                {if $it.issue.status eq 'submitted'}
+                <form class="inline" method="post" action="{:url('Counselor/confirm')}">
+                    <input type="hidden" name="id" value="{$it.issue.id}">
+                    <input type="hidden" name="action" value="confirm">
+                    <button class="btn btn-sm btn-green" type="submit">✔ 确认完成</button>
+                </form>
+                {/if}
+                {if $it.issue.status neq 'pending'}
+                <form class="inline" method="post" action="{:url('Counselor/confirm')}">
+                    <input type="hidden" name="id" value="{$it.issue.id}">
+                    <input type="hidden" name="action" value="reject">
+                    <button class="btn btn-sm btn-gray" type="submit">退回整改</button>
+                </form>
+                {/if}
+            </span>
+            {/if}
+        </div>
+        {if $it.issue.remark}<div class="muted mb10">备注：{$it.issue.remark}</div>{/if}
+        <table class="pair-table">
+            <thead>
+            <tr><th>📷 问题照片（管理员）</th><th>✅ 整改照片（学生）</th></tr>
+            </thead>
+            <tbody>
+            {volist name="it.pairs" id="pair"}
+            <tr>
+                <td>
+                    {if $pair.problem}
+                    <img src="{$pair.problem.file_path}" data-zoom alt="问题照片">
+                    <div class="muted">#{$pair.problem.sort} · {$pair.problem.created_at}</div>
+                    {else /}
+                    <div class="pair-empty">—</div>
+                    {/if}
+                </td>
+                <td>
+                    {if $pair.rectify}
+                    <img src="{$pair.rectify.file_path}" data-zoom alt="整改照片">
+                    <div class="muted">#{$pair.rectify.sort} · {$pair.rectify.uploader} · {$pair.rectify.created_at}</div>
+                    {else /}
+                    <div class="pair-empty">未上传</div>
+                    {/if}
+                </td>
+            </tr>
+            {/volist}
+            {empty name="it.pairs"}<tr><td colspan="2" class="pair-empty">暂无照片</td></tr>{/empty}
+            </tbody>
+        </table>
+    </div>
+    {/volist}
+</div>
+{/volist}
+{empty name="groups"}
+<div class="card"><div class="muted" style="text-align:center">没有符合条件的问题单</div></div>
+{/empty}
+
+<div class="pagination">{:$issues->render()}</div>
+{include file="common/footer" /}

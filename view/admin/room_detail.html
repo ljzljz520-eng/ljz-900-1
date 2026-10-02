@@ -1,0 +1,27 @@
+{include file="common/header" title="房间问题列表" /}
+<div class="card">
+    <div class="flex-between">
+        <h2 style="border:none;margin:0;padding:0">{$room.building} {$room.room_no} · 问题单列表</h2>
+        <a class="btn btn-sm btn-green" href="{:url('Admin/issueCreate',['room_id'=>$room->id])}">＋ 新建问题单</a>
+    </div>
+    <table class="list mt10">
+        <thead>
+        <tr><th>Key</th><th>扣分项</th><th>扣分</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+        {volist name="issues" id="issue"}
+        <tr>
+            <td><span class="key-chip">{$issue.issue_key}</span></td>
+            <td>{$issue.deduct_item}</td>
+            <td>{$issue.deduct_score} 分</td>
+            <td><span class="badge {:status_badge($issue.status)}">{:status_text($issue.status)}</span></td>
+            <td>{$issue.created_at}</td>
+            <td><a class="btn btn-sm" href="{:url('Admin/issueDetail',['id'=>$issue->id])}">详情 / 二维码</a></td>
+        </tr>
+        {/volist}
+        {empty name="issues"}<tr><td colspan="6" class="muted" style="text-align:center">该房间暂无问题单</td></tr>{/empty}
+        </tbody>
+    </table>
+    <div class="mt10"><a class="btn btn-gray btn-sm" href="/admin">返回房间列表</a></div>
+</div>
+{include file="common/footer" /}

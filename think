@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+namespace think;
+
+// 命令行入口文件
+require __DIR__ . '/vendor/autoload.php';
+
+// 应用初始化
+$app = new App();
+
+// 执行控制台应用
+$console = $app->console;
+
+$console->run();

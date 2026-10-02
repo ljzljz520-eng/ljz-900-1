@@ -1,0 +1,18 @@
+{include file="common/header" title="添加房间" /}
+<div class="card" style="max-width:480px">
+    <h2>添加宿舍房间</h2>
+    {if !empty($error)}<div class="alert alert-error">{$error}</div>{/if}
+    <form method="post" action="{:url('Admin/roomStore')}">
+        <div class="form-row">
+            <label>楼栋</label>
+            <input type="text" name="building" value="{$building|default=''}" placeholder="如：3号楼" required>
+        </div>
+        <div class="form-row">
+            <label>房号</label>
+            <input type="text" name="room_no" value="{$room_no|default=''}" placeholder="如：502" required>
+        </div>
+        <button class="btn" type="submit">保存</button>
+        <a class="btn btn-gray" href="/admin">返回</a>
+    </form>
+</div>
+{include file="common/footer" /}
